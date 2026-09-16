@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (secretos)
+.env
+.env.*
+!.env.example
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Registros y temporales
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+.vscode/

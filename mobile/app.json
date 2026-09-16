@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "StockMobile",
+    "slug": "stockmobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "StockMobile usa la cámara para escanear códigos de barras de los productos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0D47A1",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "StockMobile usa la cámara para escanear códigos de barras de los productos.",
+          "barcodeScannerEnabled": true
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
