@@ -14,6 +14,7 @@ from docx.oxml import OxmlElement
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 LOGO = os.path.join(BASE, "logo_stockmobile.png")
+MER_IMG = os.path.join(BASE, "modelo_mer.png")
 SALIDA = os.path.join(BASE, "Informe_StockMobile.docx")
 
 AZUL = RGBColor(0x1F, 0x38, 0x64)
@@ -167,6 +168,17 @@ def table(doc, headers, rows, widths=None):
             for i, w in enumerate(widths):
                 row.cells[i].width = Cm(w)
     return t
+
+
+def figure_image(doc, numero, titulo, path, indicacion="", width_cm=16.0):
+    """Inserta una imagen real si existe; si no, deja el marcador."""
+    if os.path.exists(path):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.add_run().add_picture(path, width=Cm(width_cm))
+        caption(doc, numero, titulo)
+    else:
+        figure(doc, numero, titulo, indicacion)
 
 
 # ---------------------------------------------------------------------------
@@ -361,8 +373,13 @@ par(doc, "Regla de negocio central: al registrar un movimiento se actualiza de f
          "transaccional el stock_actual del producto (suma en ENTRADA, resta en "
          "SALIDA), validando que exista stock suficiente antes de confirmar la salida.")
 
-figure(doc, 3, "Diagrama del modelo entidad-relacion de stockmobile_db.",
-       "diagrama MER (puede generarlo en MySQL Workbench o dibujarlo)")
+par(doc, "En la Figura 3 se presenta el diagrama entidad-relacion con la notacion "
+         "pata de gallo (crow's foot), donde cada llave primaria se resalta en color "
+         "dorado y cada llave foranea en color azul.", italic=True)
+
+figure_image(doc, 3, "Diagrama del modelo entidad-relacion de stockmobile_db "
+             "con notacion pata de gallo.", MER_IMG,
+             "diagrama MER (generado con el esquema real de la base de datos)")
 
 h(doc, "5.2. Diccionario de datos", level=2)
 
