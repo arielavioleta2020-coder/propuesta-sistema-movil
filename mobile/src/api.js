@@ -49,6 +49,15 @@ export const crearProducto = (datos) =>
     body: JSON.stringify(datos),
   });
 
+export const actualizarProducto = (id, datos) =>
+  peticion(`/productos/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(datos),
+  });
+
+export const eliminarProducto = (id) =>
+  peticion(`/productos/${id}`, { method: 'DELETE' });
+
 export const registrarMovimiento = ({ tipo, bodega_id, usuario_id, items }) =>
   peticion('/movimientos', {
     method: 'POST',

@@ -22,6 +22,17 @@ const TABS = [
 
 export default function PanelPrincipal({ usuario, alSalir }) {
   const [tab, setTab] = useState('inventario');
+  const [productoEditando, setProductoEditando] = useState(null);
+
+  function abrirEdicion(producto) {
+    setProductoEditando(producto);
+    setTab('producto');
+  }
+
+  function abrirNuevo() {
+    setProductoEditando(null);
+    setTab('producto');
+  }
 
   function renderPantalla() {
     switch (tab) {
@@ -30,9 +41,18 @@ export default function PanelPrincipal({ usuario, alSalir }) {
       case 'alertas':
         return <AlertasScreen />;
       case 'producto':
-        return <NuevoProductoScreen usuario={usuario} />;
+        return (
+          <NuevoProductoScreen
+            usuario={usuario}
+            producto={productoEditando}
+            alGuardar={() => {
+              setProductoEditando(null);
+              setTab('inventario');
+            }}
+          />
+        );
       default:
-        return <HomeScreen />;
+        return <HomeScreen usuario={usuario} alEditar={abrirEdicion} />;
     }
   }
 
@@ -60,7 +80,7 @@ export default function PanelPrincipal({ usuario, alSalir }) {
           <TouchableOpacity
             key={t.clave}
             style={styles.tab}
-            onPress={() => setTab(t.clave)}
+            onPress={() => (t.clave === 'producto' ? abrirNuevo() : setTab(t.clave))}
           >
             <View
               style={[styles.tabIndicador, tab === t.clave && styles.tabIndicadorActivo]}

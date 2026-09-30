@@ -11,10 +11,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import ScannerScreen from './ScannerScreen';
-import { obtenerProductos, escanearProducto } from '../api';
+import { obtenerProductos, escanearProducto, eliminarProducto } from '../api';
 import { COLORES } from '../config';
 
-export default function HomeScreen() {
+export default function HomeScreen({ usuario, alEditar }) {
+  const esAdmin = usuario?.rol_id === 1;
   const [codigo, setCodigo] = useState('');
   const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
   const [resultado, setResultado] = useState(null);
@@ -79,6 +80,30 @@ export default function HomeScreen() {
   function limpiarResultado() {
     setResultado(null);
     setCodigo('');
+  }
+
+  function confirmarEliminacion(producto) {
+    Alert.alert(
+      'Eliminar producto',
+      `¿Desea eliminar "${producto.nombre}"? Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await eliminarProducto(producto.id);
+              if (resultado?.producto?.id === producto.id) limpiarResultado();
+              setCargandoCatalogo(true);
+              await cargarCatalogo();
+            } catch (e) {
+              Alert.alert('No se pudo eliminar', e.message);
+            }
+          },
+        },
+      ]
+    );
   }
 
   return (
@@ -195,6 +220,16 @@ export default function HomeScreen() {
               <TouchableOpacity onPress={() => buscar(item.codigo_barras)}>
                 <Text style={styles.consultar}>Consultar producto</Text>
               </TouchableOpacity>
+              {esAdmin ? (
+                <View style={styles.acciones}>
+                  <TouchableOpacity onPress={() => alEditar(item)}>
+                    <Text style={styles.editar}>Editar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => confirmarEliminacion(item)}>
+                    <Text style={styles.eliminar}>Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
             </View>
             <View style={styles.itemDerecha}>
               <Text style={styles.itemPrecio}>${item.precio_venta}</Text>
@@ -305,6 +340,9 @@ const styles = StyleSheet.create({
   itemNombre: { fontSize: 14.5, fontWeight: '800', color: COLORES.texto },
   itemSub: { fontSize: 12, color: COLORES.gris, marginTop: 3, marginBottom: 6 },
   consultar: { fontSize: 12, color: COLORES.azul, fontWeight: '700' },
+  acciones: { flexDirection: 'row', marginTop: 9 },
+  editar: { fontSize: 12, color: COLORES.azul, fontWeight: '800', marginRight: 16 },
+  eliminar: { fontSize: 12, color: COLORES.rojo, fontWeight: '800' },
   itemDerecha: { alignItems: 'flex-end' },
   itemPrecio: { fontSize: 17, fontWeight: '900', color: COLORES.azul },
   stockBadge: {

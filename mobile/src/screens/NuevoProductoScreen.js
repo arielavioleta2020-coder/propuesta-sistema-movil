@@ -8,7 +8,12 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { obtenerCategorias, obtenerProveedores, crearProducto } from '../api';
+import {
+  obtenerCategorias,
+  obtenerProveedores,
+  crearProducto,
+  actualizarProducto,
+} from '../api';
 import { COLORES } from '../config';
 
 const INICIAL = {
@@ -20,8 +25,9 @@ const INICIAL = {
   stock_minimo: '5',
 };
 
-export default function NuevoProductoScreen({ usuario }) {
+export default function NuevoProductoScreen({ usuario, producto, alGuardar }) {
   const esAdmin = usuario?.rol_id === 1;
+  const editando = Boolean(producto);
   const [datos, setDatos] = useState(INICIAL);
   const [categorias, setCategorias] = useState([]);
   const [proveedores, setProveedores] = useState([]);
@@ -49,6 +55,25 @@ export default function NuevoProductoScreen({ usuario }) {
     })();
   }, [esAdmin]);
 
+  useEffect(() => {
+    if (!producto) {
+      setDatos(INICIAL);
+      return;
+    }
+    setDatos({
+      codigo_barras: producto.codigo_barras || '',
+      nombre: producto.nombre || '',
+      costo_compra: String(producto.costo_compra ?? ''),
+      precio_venta: String(producto.precio_venta ?? ''),
+      stock_actual: String(producto.stock_actual ?? 0),
+      stock_minimo: String(producto.stock_minimo ?? 5),
+    });
+    setCategoriaId(producto.categoria_id);
+    setProveedorId(producto.proveedor_id);
+    setError('');
+    setExito('');
+  }, [producto]);
+
   function campo(clave, valor) {
     setDatos((prev) => ({ ...prev, [clave]: valor }));
   }
@@ -70,7 +95,7 @@ export default function NuevoProductoScreen({ usuario }) {
     setError('');
     setExito('');
     try {
-      await crearProducto({
+      const productoDatos = {
         codigo_barras: datos.codigo_barras.trim(),
         nombre: datos.nombre.trim(),
         costo_compra: Number(datos.costo_compra),
@@ -79,9 +104,16 @@ export default function NuevoProductoScreen({ usuario }) {
         stock_minimo: parseInt(datos.stock_minimo, 10) || 0,
         categoria_id: categoriaId,
         proveedor_id: proveedorId,
-      });
-      setExito(`Producto "${datos.nombre.trim()}" registrado correctamente.`);
-      setDatos(INICIAL);
+      };
+      if (editando) {
+        await actualizarProducto(producto.id, productoDatos);
+        setExito(`Producto "${datos.nombre.trim()}" actualizado correctamente.`);
+      } else {
+        await crearProducto(productoDatos);
+        setExito(`Producto "${datos.nombre.trim()}" registrado correctamente.`);
+        setDatos(INICIAL);
+      }
+      setTimeout(() => alGuardar?.(), 650);
     } catch (e) {
       setError(
         e.status === 409
@@ -105,7 +137,7 @@ export default function NuevoProductoScreen({ usuario }) {
 
   return (
     <ScrollView contentContainerStyle={styles.contenedor}>
-      <Text style={styles.titulo}>Nuevo Producto</Text>
+      <Text style={styles.titulo}>{editando ? 'Editar Producto' : 'Nuevo Producto'}</Text>
       <Text style={styles.subtitulo}>Registro de producto en el catálogo</Text>
 
       <View style={styles.tarjeta}>
@@ -215,7 +247,9 @@ export default function NuevoProductoScreen({ usuario }) {
           {enviando ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.botonTexto}>Guardar Producto</Text>
+            <Text style={styles.botonTexto}>
+              {editando ? 'Guardar Cambios' : 'Guardar Producto'}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
